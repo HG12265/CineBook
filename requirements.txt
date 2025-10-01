@@ -11,3 +11,5 @@ python-dotenv
 stripe
 gunicorn 
 psycopg2-binary 
+qrcode
+Pillow
