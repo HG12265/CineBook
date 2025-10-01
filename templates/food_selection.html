@@ -1,0 +1,311 @@
+{% extends "base.html" %}
+
+{% block title %}Add Snacks - CineBook{% endblock %}
+
+{% block extra_styles %}
+<style>
+   
+    #payment-form {
+        background: #ffffff;
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        border: 1px solid #eef2f7;
+    }
+
+    #payment-form .form-label {
+        font-weight: 500;
+        color: #344767;
+        margin-bottom: 0.5rem;
+        font-size: 0.875rem;
+    }
+
+    .StripeElement {
+        box-sizing: border-box;
+        height: 44px; /* Slightly taller for better touch targets */
+        padding: 10px 12px;
+        border: 1px solid #d2d6da;
+        border-radius: 6px;
+        background-color: white;
+        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.075);
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        font-family: 'Poppins', sans-serif;
+        font-size: 1rem;
+    }
+
+    .StripeElement--focus {
+        border-color: #0d6efd; /* Bootstrap Primary Blue */
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+
+    .StripeElement--invalid {
+        border-color: #dc3545; /* Bootstrap Danger Red */
+    }
+
+    .StripeElement--webkit-autofill {
+        background-color: #e8f0fe !important; /* A light blue for autofill */
+    }
+
+    #submit {
+        background: #0d6efd;
+        border: none;
+        font-size: 1rem;
+        font-weight: 600;
+        border-radius: 6px;
+        padding: 12px;
+        transition: background-color 0.2s ease, transform 0.2s ease;
+    }
+
+    #submit:hover:not(:disabled) {
+        background: #0b5ed7; /* Darker blue on hover */
+        transform: translateY(-2px);
+    }
+
+    #submit:disabled {
+        opacity: 0.65;
+        cursor: not-allowed;
+    }
+
+    #card-errors {
+        color: #dc3545;
+        font-size: 0.875em;
+        margin-top: 8px;
+        font-weight: 500;
+        min-height: 20px; /* Prevent layout shift */
+    }
+
+    #spinner {
+        color: white;
+    }
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container" style="margin-top: 100px;">
+    <div class="row">
+        <!-- Food & Drinks Selection (No Changes Here) -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header text-center">
+                    <h4 class="mb-0">Add Snacks & Drinks</h4>
+                    <p class="mb-0 text-muted">Would you like to add something to your order?</p>
+                </div>
+                <div class="card-body">
+                    {% if food_items %}
+                    <div class="row">
+                        {% for item in food_items %}
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100">
+                                <div class="card-body d-flex align-items-center">
+                                    <img src="{{ item.image_url }}" alt="{{ item.name }}" width="80" height="80" class="me-3 rounded">
+                                    <div>
+                                        <h5 class="card-title mb-1">{{ item.name }}</h5>
+                                        <p class="card-text text-muted small">{{ item.description }}</p>
+                                        <p class="card-text fw-bold">₹{{ "%.2f"|format(item.price) }}</p>
+                                    </div>
+                                    <div class="ms-auto">
+                                        <div class="input-group" style="width: 120px;">
+                                            <button class="btn btn-outline-secondary btn-sm" type="button" onclick="updateQuantity({{ item.id }}, -1)">-</button>
+                                            <input type="text" class="form-control text-center quantity-input" id="quantity-{{ item.id }}" value="0" readonly
+                                                   data-item-id="{{ item.id }}" data-item-name="{{ item.name }}" data-item-price="{{ item.price }}">
+                                            <button class="btn btn-outline-secondary btn-sm" type="button" onclick="updateQuantity({{ item.id }}, 1)">+</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-center text-muted">No snacks available at the moment.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Booking Summary -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0"> <!-- Added shadow and removed border -->
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h5 class="mb-0">Booking Summary</h5>
+                </div>
+                <div class="card-body">
+                    <h6 class="card-title fw-bold">{{ showtime.movie.title }}</h6>
+                    <p class="card-text text-muted small mb-3">
+                        <i class="bi bi-calendar-event me-1"></i>{{ showtime.time.strftime('%d %b %Y, %I:%M %p') }}
+                        <br>
+                        <i class="bi bi-geo-alt me-1"></i>{{ showtime.theater.name }}
+                    </p>
+                    
+                    <ul class="list-group list-group-flush mb-3">
+                        <li class="list-group-item d-flex justify-content-between px-0">
+                            <span>Seats Total</span>
+                            <span id="seat-total" class="fw-medium">₹{{ "%.2f"|format(pending_booking.seat_total) }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between px-0">
+                            <span>Food & Drinks</span>
+                            <span id="food-total" class="fw-medium">₹0.00</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between px-0 fw-bold h5 mt-2">
+                            <span>Grand Total</span>
+                            <span id="grand-total">₹{{ "%.2f"|format(pending_booking.seat_total) }}</span>
+                        </li>
+                    </ul>
+
+                    <!-- STYLISH & CUSTOM CHECKOUT FORM -->
+                    <form id="payment-form">
+                        <h5 class="mb-3">Payment Details</h5>
+                        <div class="mb-3">
+                            <label for="card-element" class="form-label">Card Number</label>
+                            <div id="card-number-element" class="StripeElement"></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="card-expiry-element" class="form-label">Expiration (MM/YY)</label>
+                                <div id="card-expiry-element" class="StripeElement"></div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="card-cvc-element" class="form-label">CVC</label>
+                                <div id="card-cvc-element" class="StripeElement"></div>
+                            </div>
+                        </div>
+                        
+                        <div id="card-errors" role="alert" class="text-center"></div>
+
+                        <button id="submit" class="btn btn-primary btn-lg w-100 mt-3">
+                            <span id="button-text">Pay Securely</span>
+                            <span id="spinner" class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: none;"></span>
+                        </button>
+                    </form>
+                    <!-- END -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- The JavaScript part requires no changes, as it's already robust. -->
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const stripe = Stripe('{{ stripe_publishable_key }}');
+    const seatTotal = {{ pending_booking.seat_total }};
+    
+    const elements = stripe.elements({
+        // You can customize fonts and other appearance here
+        fonts: [
+          {
+            cssSrc: 'https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap',
+          }
+        ]
+    });
+
+    const style = {
+        base: {
+            fontFamily: '"Poppins", sans-serif',
+            fontSize: '16px',
+            color: '#32325d',
+            '::placeholder': {
+                color: '#aab7c4'
+            }
+        },
+        invalid: {
+            color: '#dc3545',
+            iconColor: '#dc3545'
+        }
+    };
+
+    const cardNumber = elements.create('cardNumber', { style });
+    cardNumber.mount('#card-number-element');
+
+    const cardExpiry = elements.create('cardExpiry', { style });
+    cardExpiry.mount('#card-expiry-element');
+
+    const cardCvc = elements.create('cardCvc', { style });
+    cardCvc.mount('#card-cvc-element');
+
+    const form = document.getElementById('payment-form');
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        setLoading(true);
+
+        const { clientSecret, error: backendError } = await fetch("/create-payment-intent", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ food_items: getFoodItems() }),
+        }).then((r) => r.json());
+
+        if (backendError) {
+            showError(backendError.message);
+            setLoading(false);
+            return;
+        }
+
+        const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(
+            clientSecret, {
+                payment_method: {
+                    card: cardNumber,
+                },
+            }
+        );
+
+        if (stripeError) {
+            showError(stripeError.message);
+            setLoading(false);
+        } else {
+            window.location.href = `/payment-success?payment_intent_client_secret=${paymentIntent.client_secret}`;
+        }
+    });
+    
+    function showError(errorMsgText) {
+        const errorMsg = document.getElementById('card-errors');
+        errorMsg.textContent = errorMsgText;
+        setTimeout(() => { errorMsg.textContent = ''; }, 5000);
+    }
+
+    function setLoading(isLoading) {
+        document.querySelector("#submit").disabled = isLoading;
+        document.querySelector("#spinner").style.display = isLoading ? "inline-block" : "none";
+        document.querySelector("#button-text").style.display = isLoading ? "none" : "inline";
+    }
+
+    function getFoodItems() {
+        const foodItems = [];
+        document.querySelectorAll('.quantity-input').forEach(input => {
+            const quantity = parseInt(input.value);
+            if (quantity > 0) {
+                foodItems.push({
+                    id: input.dataset.itemId,
+                    name: input.dataset.itemName,
+                    quantity: quantity,
+                    price: parseFloat(input.dataset.itemPrice)
+                });
+            }
+        });
+        return foodItems;
+    }
+
+    window.updateQuantity = function(itemId, change) {
+        const input = document.getElementById(`quantity-${itemId}`);
+        let currentQuantity = parseInt(input.value);
+        currentQuantity += change;
+        if (currentQuantity < 0) currentQuantity = 0;
+        input.value = currentQuantity;
+        updateSummary();
+    }
+
+    function updateSummary() {
+        let foodTotal = 0;
+        getFoodItems().forEach(item => {
+            foodTotal += item.quantity * item.price;
+        });
+        const grandTotal = seatTotal + foodTotal;
+        document.getElementById('food-total').textContent = `₹${foodTotal.toFixed(2)}`;
+        document.getElementById('grand-total').textContent = `₹${grandTotal.toFixed(2)}`;
+    }
+});
+</script>
+{% endblock %}

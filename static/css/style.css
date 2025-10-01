@@ -1,0 +1,119 @@
+/* Custom styles for CineBook */
+body {
+padding-top: 76px;
+background-color: #f8f9fa;
+display: flex;
+flex-direction: column;
+min-height: 100vh;
+font-family: 'Poppins', sans-serif; / ADD THIS LINE */
+}
+
+main {
+    flex-grow: 1;
+}
+
+.hero-section {
+    background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('../images/cinema-bg.jpg');
+    background-size: cover;
+    background-position: center;
+}
+
+.movie-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: none;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.movie-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+}
+
+.movie-card img {
+    height: 300px;
+    object-fit: cover;
+}
+
+/* Seat Selection Styles */
+.screen {
+    background-color: #333;
+    color: white;
+    padding: 10px;
+    text-align: center;
+    margin: 20px auto;
+    border-radius: 5px;
+    width: 80%;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.seat-row {
+    display: flex;
+    justify-content: center;
+}
+
+.seat {
+    width: 30px;
+    height: 30px;
+    margin: 4px;
+    border: 1px solid #adb5bd;
+    border-radius: 5px;
+    background-color: #f8f9fa;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.seat:hover:not(.booked):not(:disabled) {
+    background-color: #e9ecef;
+    transform: scale(1.1);
+}
+
+.seat.standard.selected { background-color: #28a745; border-color: #28a745; }
+.seat.premium { background-color: #e9c46a; border-color: #e9c46a; }
+.seat.premium.selected { background-color: #f4a261; border-color: #f4a261; }
+.seat.vip { background-color: #2a9d8f; border-color: #2a9d8f; color: white; }
+.seat.vip.selected { background-color: #264653; border-color: #264653; color: white; }
+
+.seat.booked, .seat:disabled {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.legend { display: flex; justify-content: center; gap: 20px; margin-top: 20px; }
+.legend-item { display: flex; align-items: center; gap: 8px; }
+.legend-item .seat { cursor: default; }
+
+/* Rating stars */
+.rating { display: flex; flex-direction: row-reverse; justify-content: flex-end; }
+.rating input { display: none; }
+.rating label { cursor: pointer; color: #dee2e6; font-size: 1.5rem; }
+.rating label:hover, .rating label:hover ~ label, .rating input:checked ~ label { color: #ffc107; }
+
+/* General UI Enhancements */
+.card { border: none; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+.navbar-brand { font-weight: bold; font-size: 1.5rem; }
+.btn { border-radius: 6px; font-weight: 500; }
+.form-control:focus { border-color: #6f42c1; box-shadow: 0 0 0 0.2rem rgba(111, 66, 193, 0.25); }
+
+/* Loading animation */
+.loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255,255,255,.3);
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: spin 1s ease-in-out infinite;
+    -webkit-animation: spin 1s ease-in-out infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+@-webkit-keyframes spin { to { -webkit-transform: rotate(360deg); } }
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    body { padding-top: 66px; }
+    .seat { width: 25px; height: 25px; margin: 3px; }
+    .hero-section .display-4 { font-size: 2rem; }
+    .movie-card img { height: 250px; }
+}

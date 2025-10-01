@@ -1,0 +1,13 @@
+Flask
+Flask-SQLAlchemy
+Werkzeug
+pandas
+numpy
+Authlib 
+requests
+email-validator
+reportlab
+python-dotenv
+stripe
+gunicorn 
+psycopg2-binary 

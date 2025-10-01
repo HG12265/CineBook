@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}Add Showtime - Admin - CineBook{% endblock %}
+
+{% block content %}
+<div class="container" style="margin-top: 100px;">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">Add New Showtime</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('admin_add_showtime') }}">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="movie_id" class="form-label">Movie</label>
+                                    <select class="form-select" id="movie_id" name="movie_id" required>
+                                        <option value="">Select a movie</option>
+                                        {% for movie in movies %}
+                                        <option value="{{ movie.id }}">{{ movie.title }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="theater_id" class="form-label">Theater</label>
+                                    <select class="form-select" id="theater_id" name="theater_id" required>
+                                        <option value="">Select a theater</option>
+                                        {% for theater in theaters %}
+                                        <option value="{{ theater.id }}">{{ theater.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="time" class="form-label">Show Time</label>
+                                    <input type="datetime-local" class="form-control" id="time" name="time" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="hall" class="form-label">Hall / Screen Name</label>
+                                    <input type="text" class="form-control" id="hall" name="hall" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="rows" class="form-label">Rows</label>
+                                    <input type="number" class="form-control" id="rows" name="rows" min="5" max="20" value="8" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="cols" class="form-label">Columns</label>
+                                    <input type="number" class="form-control" id="cols" name="cols" min="5" max="20" value="10" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="price_standard" class="form-label">Standard Price (₹)</label>
+                                    <input type="number" class="form-control" id="price_standard" name="price_standard" min="0" step="0.01" value="250.00" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="price_premium" class="form-label">Premium Price (₹)</label>
+                                    <input type="number" class="form-control" id="price_premium" name="price_premium" min="0" step="0.01" value="400.00" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="price_vip" class="form-label">VIP Price (₹)</label>
+                                    <input type="number" class="form-control" id="price_vip" name="price_vip" min="0" step="0.01" value="600.00" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">Add Showtime</button>
+                            <a href="{{ url_for('admin_showtimes') }}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Set minimum datetime to current time
+    document.addEventListener('DOMContentLoaded', function() {
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        document.getElementById('time').min = now.toISOString().slice(0,16);
+    });
+</script>
+{% endblock %}

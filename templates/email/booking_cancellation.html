@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Booking Cancellation - CineBook</title>
+    <style>
+        body { font-family: Arial, sans-serif; color: #333; }
+        .container { padding: 20px; border: 1px solid #ddd; border-radius: 5px; max-width: 600px; margin: auto; }
+        h2 { color: #d9534f; } /* Red color for cancellation */
+        ul { list-style-type: none; padding: 0; }
+        li { margin-bottom: 10px; }
+        strong { color: #555; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Booking Cancellation</h2>
+        <p>Dear {{ user.full_name or user.username }},</p>
+        <p>This email confirms that your booking for <strong>{{ booking.showtime.movie.title }}</strong> has been successfully cancelled.</p>
+        
+        <h3>Cancelled Booking Details:</h3>
+        <ul>
+            <li><strong>Movie:</strong> {{ booking.showtime.movie.title }}</li>
+            <li><strong>Showtime:</strong> {{ booking.showtime.time.strftime('%A, %B %d, %Y at %I:%M %p') }}</li>
+            <li><strong>Hall:</strong> {{ booking.showtime.hall }}</li>
+            <li><strong>Refund Amount:</strong> ₹{{ "%.2f"|format(booking.total_price) }}</li>
+        </ul>
+        
+        <p>A refund for the total amount has been processed and should reflect in your original payment method within 5-7 business days.</p>
+        <p>We are sorry to see you go and hope to see you at CineBook again soon!</p>
+        
+        <p>Best regards,<br>The CineBook Team</p>
+    </div>
+</body>
+</html>

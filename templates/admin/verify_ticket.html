@@ -1,0 +1,112 @@
+<!-- START OF FILE my-python-app/templates/admin/verify_ticket.html -->
+
+{% extends "base.html" %}
+
+{% block title %}Verify Ticket - Admin - CineBook{% endblock %}
+
+{% block content %}
+<div class="container" style="margin-top: 100px;">
+    <h1 class="mb-4">Verify Ticket</h1>
+    <div class="row">
+        <!-- Ticket Verification Column -->
+        <div class="col-md-6">
+            <!-- Manual ID Entry Card -->
+            <div class="card mb-4">
+                <div class="card-header"><h4 class="mb-0">Enter Booking ID</h4></div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('admin_verify_ticket') }}">
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="booking_id" name="booking_id" placeholder="Enter 5-digit ID" required>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-search"></i> Look Up
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- NEW: QR Code Scanner Card -->
+            <div class="card">
+                <div class="card-header"><h4 class="mb-0">Scan QR Code</h4></div>
+                <div class="card-body">
+                    <div id="qr-reader" style="width: 100%;"></div>
+                    <div id="qr-reader-results" class="mt-2 text-muted small"></div>
+                    <button id="start-scan-btn" class="btn btn-success w-100 mt-2">
+                        <i class="bi bi-qr-code-scan"></i> Start Camera Scan
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Booking Details Column -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header"><h4 class="mb-0">Booking Details</h4></div>
+                <div class="card-body" id="booking-details-container">
+                    <!-- This content will be loaded dynamically -->
+                    {% if booking %}
+                        {% include 'admin/booking_details_partial.html' %}
+                    {% else %}
+                        <p class="text-muted">Enter a booking ID or scan a QR code to view details.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const startScanBtn = document.getElementById('start-scan-btn');
+    const bookingDetailsContainer = document.getElementById('booking-details-container');
+    let html5QrcodeScanner;
+
+    function onScanSuccess(decodedText, decodedResult) {
+        // Example decodedText: "CineBook Booking ID: 00001, Movie: Avatar: The Way of Water"
+        console.log(`Scan result: ${decodedText}`);
+        
+        // Extract the Booking ID from the scanned text
+        const match = decodedText.match(/Booking ID: (\d+)/);
+        
+        if (match && match[1]) {
+            const bookingId = match[1];
+            html5QrcodeScanner.clear(); // Stop scanning
+            startScanBtn.textContent = 'Scan Again';
+            startScanBtn.disabled = false;
+            
+            // Fetch booking details from the server
+            fetch(`/admin/get-booking-details/${bookingId}`)
+                .then(response => response.text())
+                .then(html => {
+                    bookingDetailsContainer.innerHTML = html;
+                })
+                .catch(error => {
+                    console.error('Error fetching booking details:', error);
+                    bookingDetailsContainer.innerHTML = `<div class="alert alert-danger">Error loading details.</div>`;
+                });
+        } else {
+            console.warn("QR code does not contain a valid Booking ID.");
+        }
+    }
+
+    function onScanError(errorMessage) {
+        // handle scan error, usually you can ignore this.
+    }
+
+    startScanBtn.addEventListener('click', () => {
+        startScanBtn.textContent = 'Starting Camera...';
+        startScanBtn.disabled = true;
+
+        html5QrcodeScanner = new Html5QrcodeScanner(
+            "qr-reader", 
+            { fps: 10, qrbox: {width: 250, height: 250} },
+            /* verbose= */ false
+        );
+        html5QrcodeScanner.render(onScanSuccess, onScanError);
+    });
+});
+</script>
+{% endblock %}

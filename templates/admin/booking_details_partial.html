@@ -1,0 +1,63 @@
+{% if booking %}
+    <!-- Displayed when a valid booking object is found -->
+    <h5>Booking #{{ "%05d"|format(booking.id) }}</h5>
+    
+    <ul class="list-group list-group-flush mt-3">
+        <li class="list-group-item d-flex justify-content-between">
+            <strong>Movie:</strong> 
+            <span>{{ booking.showtime.movie.title }}</span>
+        </li>
+        <li class="list-group-item d-flex justify-content-between">
+            <strong>User:</strong> 
+            <span>{{ booking.user.username }}</span>
+        </li>
+        <li class="list-group-item d-flex justify-content-between">
+            <strong>Showtime:</strong> 
+            <span>{{ booking.showtime.time.strftime('%d %b %Y, %I:%M %p') }}</span>
+        </li>
+        <li class="list-group-item d-flex justify-content-between">
+            <strong>Seats:</strong> 
+            <span class="text-end">
+                {% for seat in booking.seats|fromjson %}
+                    Row {{ seat.row + 1 }}, Seat {{ seat.col + 1 }} ({{seat.type}}){% if not loop.last %}<br>{% endif %}
+                {% endfor %}
+            </span>
+        </li>
+         <li class="list-group-item d-flex justify-content-between">
+            <strong>Status:</strong> 
+            <span class="badge bg-{% if booking.status == 'confirmed' %}success{% else %}secondary{% endif %} text-capitalize">{{ booking.status }}</span>
+        </li>
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <strong>Attended:</strong> 
+            <span class="badge bg-{% if booking.attended %}success{% else %}secondary{% endif %}">
+                {% if booking.attended %}Yes{% else %}No{% endif %}
+            </span>
+        </li>
+    </ul>
+
+    <!-- Action Buttons Logic -->
+    {% if booking.status == 'confirmed' %}
+        {% if not booking.attended %}
+            <!-- If booking is confirmed AND user has NOT attended yet, show the button -->
+            <form method="POST" action="{{ url_for('admin_mark_attended', booking_id=booking.id) }}" class="mt-3">
+                <button type="submit" class="btn btn-success w-100">
+                    <i class="bi bi-check-circle-fill"></i> Mark as Attended
+                </button>
+            </form>
+        {% else %}
+            <!-- If booking is confirmed AND user HAS already attended -->
+            <div class="alert alert-success mt-3 mb-0" role="alert">
+                <i class="bi bi-check-all"></i> Already marked as attended.
+            </div>
+        {% endif %}
+    {% else %}
+        <!-- If booking is NOT confirmed (e.g., cancelled) -->
+        <div class="alert alert-warning mt-3 mb-0" role="alert">
+            This booking is not confirmed (Status: {{ booking.status }}).
+        </div>
+    {% endif %}
+
+{% else %}
+    <!-- Displayed when the booking object is None (i.e., not found) -->
+    <p class="text-muted mt-3">Booking not found. Please try another ID or scan again.</p>
+{% endif %}

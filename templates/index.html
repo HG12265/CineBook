@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Home - CineBook{% endblock %}
+
+{% block content %}
+    <!-- Hero Section -->
+    <section class="hero-section bg-dark text-light py-5">
+        <div class="container py-5 text-center">
+            <h1 class="display-4 fw-bold mb-4">Your Ultimate Movie Destination in Salem</h1>
+            <p class="lead mb-4">Select your favorite theater, discover the latest movies, and book your seats in just a few clicks.</p>
+        </div>
+    </section>
+
+    <!-- Theaters Listing Section -->
+    <section class="py-5">
+        <div class="container">
+            <h2 class="mb-4 text-center">Choose a Theater</h2>
+            <div class="row justify-content-center">
+                {% if theaters %}
+                    {% for theater in theaters %}
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card h-100 movie-card">
+                            <img src="{{ theater.image_url }}" class="card-img-top" alt="{{ theater.name }}" style="height: 200px; object-fit: cover;">
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title">{{ theater.name }}</h5>
+                                <p class="card-text text-muted"><i class="bi bi-geo-alt-fill"></i> {{ theater.address }}</p>
+                                <div class="mt-auto">
+                                    <a href="{{ url_for('theater_movies', theater_id=theater.id) }}" class="btn btn-primary w-100">
+                                        View Movies & Showtimes
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                <div class="col-12 text-center">
+                    <p class="text-muted">No theaters are currently available.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="py-5 bg-light">
+        <div class="container">
+            <h2 class="mb-5 text-center">Why Choose CineBook?</h2>
+            <div class="row text-center">
+                <div class="col-md-4 mb-4">
+                    <i class="bi bi-ticket-perforated fs-1 text-primary mb-3"></i>
+                    <h4>Easy Booking</h4>
+                    <p>Book your tickets in just a few clicks from anywhere, anytime.</p>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <i class="bi bi-phone fs-1 text-primary mb-3"></i>
+                    <h4>Mobile Tickets</h4>
+                    <p>Receive your tickets on your phone - no need to print.</p>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <i class="bi bi-arrow-left-right fs-1 text-primary mb-3"></i>
+                    <h4>Easy Cancellations</h4>
+                    <p>Cancel your bookings easily with just a few clicks.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}

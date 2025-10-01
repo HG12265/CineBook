@@ -1,0 +1,203 @@
+<!-- START OF FILE my-python-app/templates/profile.html -->
+
+{% extends "base.html" %}
+
+{% block title %}My Profile - CineBook{% endblock %}
+
+{% block content %}
+<div class="container" style="margin-top: 100px;">
+    <h1 class="mb-4">My Profile</h1>
+
+    <div class="row">
+        <div class="col-md-3">
+            <!-- Profile Sidebar -->
+            <div class="card">
+                <div class="card-body text-center">
+                    <img src="{{ user.avatar }}" alt="{{ user.username }}" class="rounded-circle mb-3" id="avatar-preview" width="120" height="120" style="object-fit: cover;">
+                    <h4>{{ user.username }}</h4>
+                    <p class="text-muted">{{ user.email }}</p>
+                    <p class="text-muted small">Joined on: {{ user.created_at.strftime('%d %B %Y') }}</p>
+                </div>
+                <div class="list-group list-group-flush" id="profile-tabs" role="tablist">
+                    <a class="list-group-item list-group-item-action active" data-bs-toggle="pill" href="#details" role="tab">
+                        <i class="bi bi-person-circle me-2"></i>Profile Details
+                    </a>
+                    <a class="list-group-item list-group-item-action" data-bs-toggle="pill" href="#bookings" role="tab">
+                        <i class="bi bi-ticket-perforated me-2"></i>Booking History
+                    </a>
+                    <a class="list-group-item list-group-item-action" data-bs-toggle="pill" href="#reviews" role="tab">
+                        <i class="bi bi-star-fill me-2"></i>My Reviews
+                    </a>
+                    <a class="list-group-item list-group-item-action" data-bs-toggle="pill" href="#security" role="tab">
+                        <i class="bi bi-shield-lock me-2"></i>Change Password
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <!-- Tab Content -->
+            <div class="tab-content">
+                <!-- Profile Details Tab -->
+                <div class="tab-pane fade show active" id="details" role="tabpanel">
+                    <div class="card">
+                        <div class="card-header"><h4>Edit Profile Details</h4></div>
+                        <div class="card-body">
+                            <!-- ADD enctype for file uploads -->
+                            <form action="{{ url_for('edit_profile') }}" method="POST" enctype="multipart/form-data">
+                                <div class="mb-3">
+                                    <label for="username" class="form-label">Username</label>
+                                    <input type="text" id="username" class="form-control" value="{{ user.username }}" disabled>
+                                    <div class="form-text">Username cannot be changed.</div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email Address</label>
+                                    <input type="email" id="email" class="form-control" value="{{ user.email }}" disabled>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="full_name" class="form-label">Full Name</label>
+                                    <input type="text" id="full_name" name="full_name" class="form-control" value="{{ user.full_name or '' }}" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="phone" class="form-label">Phone Number</label>
+                                    <input type="tel" id="phone" name="phone" class="form-control" value="{{ user.phone or '' }}">
+                                </div>
+                                <!-- NEW: Avatar Upload Field -->
+                                <div class="mb-3">
+                                    <label for="avatar" class="form-label">Change Profile Picture</label>
+                                    <input type="file" id="avatar" name="avatar" class="form-control" accept="image/png, image/jpeg, image/gif">
+                                </div>
+                                <button type="submit" class="btn btn-primary">Save Changes</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Booking History Tab -->
+                <div class="tab-pane fade" id="bookings" role="tabpanel">
+                    <div class="card">
+                        <div class="card-header"><h4>Booking History</h4></div>
+                        <div class="card-body">
+                            {% if bookings %}
+                                {% for booking in bookings %}
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                <h5 class="card-title mb-1">{{ booking.showtime.movie.title }}</h5>
+                                                <p class="card-text text-muted mb-2">
+                                                    <i class="bi bi-building"></i> {{ booking.showtime.theater.name }}
+                                                </p>
+                                            </div>
+                                            <span class="badge bg-{% if booking.status == 'confirmed' %}success{% else %}secondary{% endif %} text-capitalize" style="height: fit-content;">
+                                                {{ booking.status }}
+                                            </span>
+                                        </div>
+                                        <p class="card-text"><i class="bi bi-calendar-event me-2"></i>{{ booking.showtime.time.strftime('%A, %d %b %Y at %I:%M %p') }}</p>
+                                        <p class="card-text"><i class="bi bi-ticket-perforated me-2"></i>
+                                            {% for seat in booking.seats|fromjson %}
+                                                Row {{ seat.row + 1 }}, Seat {{ seat.col + 1 }}{% if not loop.last %}, {% endif %}
+                                            {% endfor %}
+                                        </p>
+                                        {% if booking.status == 'confirmed' %}
+                                        <a href="{{ url_for('download_ticket', booking_id=booking.id) }}" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-download"></i> Download Ticket
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                    <div class="card-footer bg-light text-muted">
+                                        Booked on: {{ (booking.booking_time|to_ist).strftime('%Y-%m-%d %I:%M %p') }}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <p class="text-muted text-center">You have no bookings.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- My Reviews Tab -->
+                <div class="tab-pane fade" id="reviews" role="tabpanel">
+                    <div class="card">
+                        <div class="card-header"><h4>My Reviews</h4></div>
+                        <div class="card-body">
+                             {% if reviews %}
+                                {% for review in reviews %}
+                                    <div class="card mb-3">
+                                        <div class="row g-0">
+                                            <div class="col-md-2">
+                                                <img src="{{ review.movie.poster_url }}" class="img-fluid rounded-start" alt="{{ review.movie.title }}" style="object-fit: cover; height: 100%;">
+                                            </div>
+                                            <div class="col-md-10">
+                                                <div class="card-body">
+                                                    <div class="d-flex w-100 justify-content-between">
+                                                        <h5 class="card-title mb-1">
+                                                            <a href="{{ url_for('movie_detail', movie_id=review.movie.id) }}" class="text-decoration-none">{{ review.movie.title }}</a>
+                                                        </h5>
+                                                        <div>
+                                                            {% for i in range(5) %}
+                                                                <i class="bi bi-star{% if i < review.rating %}-fill text-warning{% else %} text-muted{% endif %}"></i>
+                                                            {% endfor %}
+                                                        </div>
+                                                    </div>
+                                                    <p class="card-text mt-2">"{{ review.comment }}"</p>
+                                                    <p class="card-text"><small class="text-muted">Reviewed on: {{ review.created_at.strftime('%d %B %Y') }}</small></p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <p class="text-muted text-center">You have not written any reviews yet.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Change Password Tab -->
+                <div class="tab-pane fade" id="security" role="tabpanel">
+                    <div class="card">
+                        <div class="card-header"><h4>Change Password</h4></div>
+                        <div class="card-body">
+                            <form action="{{ url_for('change_password') }}" method="POST">
+                                <div class="mb-3">
+                                    <label for="current_password" class="form-label">Current Password</label>
+                                    <input type="password" id="current_password" name="current_password" class="form-control" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="new_password" class="form-label">New Password</label>
+                                    <input type="password" id="new_password" name="new_password" class="form-control" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="confirm_password" class="form-label">Confirm New Password</label>
+                                    <input type="password" id="confirm_password" name="confirm_password" class="form-control" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Update Password</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- NEW: JavaScript for avatar preview -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const avatarInput = document.getElementById('avatar');
+    const avatarPreview = document.getElementById('avatar-preview');
+
+    avatarInput.addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (file) {
+            // Create a temporary URL for the selected file and update the preview image src
+            avatarPreview.src = URL.createObjectURL(file);
+        }
+    });
+});
+</script>
+{% endblock %}

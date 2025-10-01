@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Verify Your Account - CineBook{% endblock %}
+
+{% block content %}
+<div class="container" style="margin-top: 100px;">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">Enter Verification Code</h4>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">A 4-digit OTP has been sent to your email address: <strong>{{ email }}</strong>. Please enter it below to complete your registration.</p>
+                    <form method="POST" action="{{ url_for('verify_otp') }}">
+                        <div class="mb-3">
+                            <label for="otp" class="form-label">OTP Code</label>
+                            <input type="text" class="form-control" id="otp" name="otp" required minlength="4" maxlength="4" placeholder="Enter 4-digit code">
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Verify & Register</button>
+                    </form>
+                    <div class="text-center mt-3">
+                        <p>Didn't receive the code? <a href="{{ url_for('register') }}">Start Over</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
