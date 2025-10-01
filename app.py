@@ -16,7 +16,6 @@ from flask import (
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
-import numpy as np
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from reportlab.lib.utils import ImageReader
@@ -196,7 +195,8 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
 def create_seat_layout(rows, cols, seat_categories=None):
-    layout = np.zeros((int(rows), int(cols)), dtype=int).tolist()
+    # Create a 2D list (grid) with plain Python
+    layout = [[0 for _ in range(int(cols))] for _ in range(int(rows))]
     if seat_categories:
         for cat, positions in seat_categories.items():
             for r, c in positions:
